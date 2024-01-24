@@ -1,0 +1,22 @@
+---
+- name: Init cluster
+  ansible.builtin.command: "kubeadm init --control-plane-endpoint={{ dns_name }}"
+  become: true
+
+- name: Create user config
+  ansible.builtin.shell: "{{ item }}"
+  loop:
+    - mkdir -p $HOME/.kube
+    - sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+    - sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+- name: Install Calico CNI
+  ansible.builtin.command: kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.26.1/manifests/calico.yaml
+
+- name: Generate join command
+  ansible.builtin.command: kubeadm token create --print-join-command
+  register: join_command
+  become: true
+
+- name: Save join command
+  local_action: ansible.builtin.copy content="{{ join_command.stdout_lines[0] }}" dest="./join-command"

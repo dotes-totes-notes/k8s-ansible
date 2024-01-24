@@ -1,0 +1,20 @@
+---
+- name: Preconfiguration
+  hosts: all
+  roles:
+    - server_preconfiguration
+
+- name: Install k8s
+  hosts: all
+  roles:
+    - k8s_install
+
+- name: Create cluster
+  hosts: master
+  roles:
+    - k8s_create_cluster
+
+- name: Join nodes
+  hosts: workers
+  roles:
+    - k8s_join_node
